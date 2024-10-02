@@ -1,0 +1,6 @@
+# [submodule "third/spdlog"]
+# 	path = third/spdlog
+# 	url = git@gitlab.act.buaa.edu.cn:liaojl1/spdlog.git
+[submodule "third/spdlog"]
+	path = third/spdlog
+	url = git@gitlab.act.buaa.edu.cn:liaojl1/spdlog.git
