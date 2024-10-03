@@ -20,6 +20,7 @@
 #include "compact.h"
 #include "graph.h"
 #include "nlohmann/json.hpp"
+#include "omp.h"
 #include "partition.h"
 #include "utils.h"
 using namespace std;
@@ -61,6 +62,7 @@ DEFINE_int32(maxBlock, 64, "最大分区数");
 DEFINE_int32(minBlock, 4, "最小分区数");
 DEFINE_int32(numStep, 100, "循环次数");
 DEFINE_int32(delta, std::numeric_limits<int32_t>::max(), "delta 截断");
+DEFINE_int32(numThread, 4, "线程数");
 
 string querypairfilename = "../result/query";
 
@@ -100,25 +102,24 @@ int main(int argc, char *argv[]) {
     srand48(time(nullptr));
 
     Partitioner partitioner(FLAGS_minBlock);
-
+    omp_set_num_threads(FLAGS_numThread);
     // 分区
     partitioner.runPartition(g, algo);
     timer.ticker();
     LOG("run partition time =  {} (ms)", timer.get_last_consuming());
 
     timer.ticker();
-    partitioner.ComputeBorder();  // 
+    partitioner.ComputeBorder();  //
     timer.ticker();
     LOG("ComputeBorder = {} (ms)", timer.get_last_consuming());
 
     timer.ticker();
-    partitioner.runLocalReachability();  // 
+    partitioner.runLocalReachability();  //
     timer.ticker();
     LOG("local algorithm {}, time = {} (ms)", algo, timer.get_last_consuming());
 
-   
     timer.ticker();
-    partitioner.runBorderReachability();  // 
+    partitioner.runBorderReachability();  //
     timer.ticker();
     LOG("border Reachability = {} (ms)", timer.get_last_consuming());
 
@@ -141,7 +142,7 @@ int main(int argc, char *argv[]) {
     j["index size"] = partitioner.getIndexSize();
     j["graph nodes"] = g.num_vertices();
     j["graph edge"] = g.num_edges();
-    
+
     double sum = 0;
     for (int i = 0; i < g.num_vertices(); i++) {
         for (auto edge : g.out_edges(i)) {
