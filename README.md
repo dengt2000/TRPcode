@@ -9,7 +9,7 @@ THerefore, we uploaded the used datasets to the following link: [TRP_datasets](h
 ### 2.1 Clone the repository
 Clone the repository and run the following command to build the execution file:
 ```bash
-madir -p build
+mkdir -p build
 cmake ..&& make -j
 ```
 ### 2.2 Create directories
