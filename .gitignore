@@ -1,5 +1,5 @@
 build/*
-result/*
+result/*.json
 query/*.query
 data/*
 logs/*
