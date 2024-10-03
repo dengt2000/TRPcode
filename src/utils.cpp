@@ -118,7 +118,6 @@ Graph transformation(BiGraph &bg, int delta) {
 
 Graph transformation(BiGraph &bg) {
     Graph g;
-    // flow[i][j] = <partition.id, <v,startTime>>
     vector<vector<pair<int, tuple<int, time_t, time_t>>>> flow(bg.adj_matrix_u.size(),
                                                                vector<pair<int, tuple<int, time_t, time_t>>>());
     for (int v = 0; v < bg.adj_matrix_l.size(); v++) {
@@ -214,7 +213,6 @@ struct QuadupleHasher {
         return ((h1 << 32) | h2) + ((h3 << 32) | h4);
     }
 };
-
 
 struct QuadupleEqual {
     bool operator()(const Quaduple &q1, const Quaduple &q2) const {
@@ -352,8 +350,7 @@ Graph newTransformation(BiGraph &bg, int delta) {
 
                         time_t t5 = flow[make_tuple(u, t1, t2, v1)].first;
                         time_t t6 = flow[make_tuple(u, t3, t4, v2)].second;
-
-                        g.addEdge(make_tuple(v2, t6, t4), make_tuple(v1, t1, t5));
+                        if (t1 - t4 < delta) g.addEdge(make_tuple(v2, t6, t4), make_tuple(v1, t1, t5));
 
                     } else if (starts.size() == 1 && ends.size() > 1) {
                         int v1 = bg.adj_matrix_u[u][starts[0]];
@@ -362,15 +359,16 @@ Graph newTransformation(BiGraph &bg, int delta) {
                         time_t t3 = flow[make_tuple(u, t1, t2, v1)].first;
 
                         g.addVertex(v1, min_start, min_start);
-
-                        g.addEdge(make_tuple(v1, min_start, min_start), make_tuple(v1, t1, t3));
+                        if (t1 - min_start < delta)
+                            g.addEdge(make_tuple(v1, min_start, min_start), make_tuple(v1, t1, t3));
 
                         for (auto e : ends) {
                             int v2 = bg.adj_matrix_u[u][e];
                             time_t t4 = bg.timeSection_u[u][e].first;
                             time_t t5 = bg.timeSection_u[u][e].second;
                             time_t t6 = flow[make_tuple(u, t4, t5, v2)].second;
-                            g.addEdge(make_tuple(v2, t6, t5), make_tuple(v1, min_start, min_start));
+                            if (min_start - t5 < delta)
+                                g.addEdge(make_tuple(v2, t6, t5), make_tuple(v1, min_start, min_start));
                         }
 
                     } else if (starts.size() > 1 && ends.size() == 1) {
@@ -381,16 +379,16 @@ Graph newTransformation(BiGraph &bg, int delta) {
                         int v_min = INT32_MAX;
                         for (auto s : starts) v_min = min(v_min, bg.adj_matrix_u[u][s]);
                         g.addVertex(v_min, min_start, min_start);
-
-                        g.addEdge(make_tuple(v1, t3, t2), make_tuple(v_min, max_end, max_end));
+                        if (max_end - t2 < delta)
+                            g.addEdge(make_tuple(v1, t3, t2), make_tuple(v_min, max_end, max_end));
 
                         for (auto s : starts) {
                             int v2 = bg.adj_matrix_u[u][s];
                             time_t t4 = bg.timeSection_u[u][s].first;
                             time_t t5 = bg.timeSection_u[u][s].second;
                             time_t t6 = flow[make_tuple(u, t4, t5, v2)].first;
-
-                            g.addEdge(make_tuple(v_min, max_end, max_end), make_tuple(v2, t4, t6));
+                            if (t4 - max_end < delta)
+                                g.addEdge(make_tuple(v_min, max_end, max_end), make_tuple(v2, t4, t6));
                         }
                     } else if (starts.size() > 1 && ends.size() > 1) {
                         int v_min = INT32_MAX;
@@ -402,8 +400,8 @@ Graph newTransformation(BiGraph &bg, int delta) {
                             time_t t1 = bg.timeSection_u[u][s].first;
                             time_t t2 = bg.timeSection_u[u][s].second;
                             time_t t3 = flow[make_tuple(u, t1, t2, v1)].first;
-
-                            g.addEdge(make_tuple(v_min, min_start, min_start), make_tuple(v1, t1, t3));
+                            if (t1 - min_start < delta)
+                                g.addEdge(make_tuple(v_min, min_start, min_start), make_tuple(v1, t1, t3));
                         }
 
                         for (auto e : ends) {
@@ -411,8 +409,8 @@ Graph newTransformation(BiGraph &bg, int delta) {
                             time_t t4 = bg.timeSection_u[u][e].first;
                             time_t t5 = bg.timeSection_u[u][e].second;
                             time_t t6 = flow[make_tuple(u, t4, t5, v2)].second;
-
-                            g.addEdge(make_tuple(v2, t6, t5), make_tuple(v_min, min_start, min_start));
+                            if (min_start - t5 < delta)
+                                g.addEdge(make_tuple(v2, t6, t5), make_tuple(v_min, min_start, min_start));
                         }
                     }
                     max_end = 0;
